@@ -1,14 +1,29 @@
-# frontend-assessment-techstack-media
+# Frontend Assessment – Content Explorer
 
 A production-style Content Explorer built with Next.js App Router, TypeScript, and Tailwind CSS.
 
-## Live demo
+## Live Demo
 
-Deploy to Vercel or Cloudflare Workers. If you choose Vercel, note in your submission that the focus here was maximizing implementation quality, testing, and performance within the assessment window.
+- **Live URL:** https://frontend-assessment-techstack-media.vercel.app/products  
+- **GitHub Repository:** https://github.com/techstackspace/frontend-assessment-techstack-media
 
-## API choice
+> Deployed on Vercel for speed and simplicity within the assessment timeframe. The implementation prioritizes correctness, performance, and maintainability.
 
-This app uses the [DummyJSON products API](https://dummyjson.com/docs/products) because it is stable, free, paginated, image-rich, and ideal for implementing listing, filtering, detail pages, and performance work without authentication overhead.
+---
+
+## API Choice
+
+This application uses the [DummyJSON Products API](https://dummyjson.com/docs/products).
+
+**Why this API:**
+- No authentication overhead
+- Stable and paginated
+- Rich metadata (images, categories, ratings, pricing)
+- Supports realistic UI scenarios (listing, filtering, detail pages)
+
+This allowed focus on architecture, performance, and UX rather than API constraints.
+
+---
 
 ## Setup
 
