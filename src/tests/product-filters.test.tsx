@@ -1,33 +1,36 @@
 import React from 'react';
-import { act, render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ProductFilters } from '@/components/products/product-filters';
 
-const push = vi.fn();
+const replaceMock = vi.fn();
+const searchParams = new URLSearchParams('page=2');
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({
-    push,
+    replace: replaceMock,
+    push: vi.fn(),
+    refresh: vi.fn(),
+    prefetch: vi.fn(),
+    back: vi.fn(),
+    forward: vi.fn(),
   }),
   usePathname: () => '/products',
-  useSearchParams: () =>
-    new URLSearchParams('page=2'),
+  useSearchParams: () => searchParams,
+}));
+
+vi.mock('@/hooks/use-debounced-search', () => ({
+  useDebouncedSearch: (value: string) => value,
 }));
 
 describe('ProductFilters', () => {
   beforeEach(() => {
-    vi.useFakeTimers();
-    push.mockClear();
+    replaceMock.mockClear();
   });
 
-  afterEach(() => {
-    vi.runOnlyPendingTimers();
-    vi.useRealTimers();
-  });
-
-  it('updates the URL with debounced search and resets pagination', async () => {
-    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+  it('updates the URL with search and resets pagination', async () => {
+    const user = userEvent.setup();
 
     render(<ProductFilters categories={['beauty', 'furniture']} />);
 
@@ -38,40 +41,30 @@ describe('ProductFilters', () => {
     await user.clear(input);
     await user.type(input, 'phone');
 
-    act(() => {
-      vi.advanceTimersByTime(450);
-    });
-
     await waitFor(() => {
-      expect(push).toHaveBeenCalled();
+      expect(replaceMock).toHaveBeenCalled();
     });
 
-    expect(push).toHaveBeenLastCalledWith(
-      expect.stringContaining('q=phone')
-    );
-    expect(push).toHaveBeenLastCalledWith(
-      expect.not.stringContaining('page=2')
-    );
+    const lastCall = replaceMock.mock.calls.at(-1);
+    expect(lastCall?.[0]).toContain('q=phone');
+    expect(lastCall?.[0]).not.toContain('page=2');
+    expect(lastCall?.[1]).toEqual({ scroll: false });
   });
 
   it('updates the URL when category changes', async () => {
-    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    const user = userEvent.setup();
 
     render(<ProductFilters categories={['beauty', 'furniture']} />);
 
-    const select = screen.getByRole('combobox');
-
-    await user.selectOptions(select, 'furniture');
+    await user.selectOptions(screen.getByRole('combobox'), 'furniture');
 
     await waitFor(() => {
-      expect(push).toHaveBeenCalled();
+      expect(replaceMock).toHaveBeenCalled();
     });
 
-    expect(push).toHaveBeenLastCalledWith(
-      expect.stringContaining('category=furniture')
-    );
-    expect(push).toHaveBeenLastCalledWith(
-      expect.not.stringContaining('page=2')
-    );
+    const lastCall = replaceMock.mock.calls.at(-1);
+    expect(lastCall?.[0]).toContain('category=furniture');
+    expect(lastCall?.[0]).not.toContain('page=2');
+    expect(lastCall?.[1]).toEqual({ scroll: false });
   });
 });
