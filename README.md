@@ -13,7 +13,7 @@ This app uses the [DummyJSON products API](https://dummyjson.com/docs/products) 
 ## Setup
 
 ```bash
-git clone <repo-url>
+git clone https://github.com/techstackspace/frontend-assessment-techstack-media.git
 cd frontend-assessment-techstack-media
 npm install
 npm run dev
