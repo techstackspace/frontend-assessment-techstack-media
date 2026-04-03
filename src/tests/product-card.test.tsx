@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { ProductCard } from '@/components/products/product-card';
 import type { Product } from '@/types/product';
+import { describe, expect, it, vi } from 'vitest';
 
 vi.mock('next/image', () => ({
   default: (props: React.ImgHTMLAttributes<HTMLImageElement>) => <img {...props} alt={props.alt} />

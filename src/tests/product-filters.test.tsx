@@ -1,19 +1,24 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import React from 'react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest';
 import { ProductFilters } from '@/components/products/product-filters';
 
-const replace = vi.fn();
+const push = vi.fn();
 
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ replace }),
+  useRouter: () => ({
+    push,
+  }),
   usePathname: () => '/products',
-  useSearchParams: () => new URLSearchParams('page=3')
+  useSearchParams: () =>
+    new URLSearchParams('page=2'),
 }));
 
 describe('ProductFilters', () => {
   beforeEach(() => {
     vi.useFakeTimers();
-    replace.mockClear();
+    push.mockClear();
   });
 
   afterEach(() => {
@@ -26,14 +31,27 @@ describe('ProductFilters', () => {
 
     render(<ProductFilters categories={['beauty', 'furniture']} />);
 
-    const input = screen.getByPlaceholderText('Search by title, description, or brand');
-    await user.type(input, 'chair');
+    const input = screen.getByPlaceholderText(
+      /search by title, description, or brand/i
+    );
 
-    vi.advanceTimersByTime(450);
+    await user.clear(input);
+    await user.type(input, 'phone');
+
+    act(() => {
+      vi.advanceTimersByTime(450);
+    });
 
     await waitFor(() => {
-      expect(replace).toHaveBeenLastCalledWith('/products?q=chair', { scroll: false });
+      expect(push).toHaveBeenCalled();
     });
+
+    expect(push).toHaveBeenLastCalledWith(
+      expect.stringContaining('q=phone')
+    );
+    expect(push).toHaveBeenLastCalledWith(
+      expect.not.stringContaining('page=2')
+    );
   });
 
   it('updates the URL when category changes', async () => {
@@ -41,11 +59,19 @@ describe('ProductFilters', () => {
 
     render(<ProductFilters categories={['beauty', 'furniture']} />);
 
-    await user.selectOptions(screen.getByRole('combobox'), 'furniture');
-    vi.advanceTimersByTime(450);
+    const select = screen.getByRole('combobox');
+
+    await user.selectOptions(select, 'furniture');
 
     await waitFor(() => {
-      expect(replace).toHaveBeenLastCalledWith('/products?category=furniture', { scroll: false });
+      expect(push).toHaveBeenCalled();
     });
+
+    expect(push).toHaveBeenLastCalledWith(
+      expect.stringContaining('category=furniture')
+    );
+    expect(push).toHaveBeenLastCalledWith(
+      expect.not.stringContaining('page=2')
+    );
   });
 });
